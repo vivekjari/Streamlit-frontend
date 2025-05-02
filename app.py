@@ -1,49 +1,35 @@
-# app.py (Streamlit frontend)
-
 import streamlit as st
-import requests
 import pandas as pd
-import io
+from chat_engine import get_chat_response
+from followups import generate_followups
+from utils import normalize_columns
 
-st.set_page_config(page_title="Campaign Trend Analyzer", layout="centered")
+st.set_page_config(page_title="Campaign Trend Chat Analyzer", layout="wide")
 
-st.title("📊 Campaign Trend Analyzer")
-st.write("Upload your campaign CSV file to generate insights using AI.")
+st.title("🧠 Campaign Trend Chat Analyzer")
 
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+uploaded_file = st.file_uploader("Upload your campaign dataset (CSV)", type=["csv"])
 
 if uploaded_file:
     try:
-        # Read the file to show a preview
-        df_preview = pd.read_csv(uploaded_file)
-        st.subheader("📄 File Preview")
-        st.dataframe(df_preview.head())
+        df = pd.read_csv(uploaded_file)
+        df = normalize_columns(df)
 
-        # Reset the file pointer before sending to backend
-        uploaded_file.seek(0)
+        st.success("✅ File uploaded and processed successfully!")
+        st.write("Preview of your data:", df.head())
 
-        with st.spinner("🔍 Generating insights..."):
-            files = {'file': uploaded_file.getvalue()}
-            response = requests.post(
-                "https://campaign-insights-backend.onrender.com/upload",
-                files={'file': uploaded_file}
-            )
+        # Chat Interface
+        user_input = st.text_input("Ask a question about your campaign data:")
 
-        if response.status_code == 200:
-            insights = response.json().get("insights", [])
-            if insights:
-                st.subheader("✅ AI-Generated Insights")
-                for i, insight in enumerate(insights, 1):
-                    st.markdown(f"- **Insight {i}:** {insight}")
-            else:
-                st.warning("No insights generated. Please check your data.")
-        else:
-            error = response.json().get("error", "Unknown error")
-            st.error(f"❌ Error: {error}")
+        if user_input:
+            with st.spinner("Generating insights..."):
+                response = get_chat_response(user_input, df)
+                followups = generate_followups(user_input, df)
 
-    except pd.errors.EmptyDataError:
-        st.error("❌ The uploaded file is empty or unreadable.")
+            st.markdown(f"**💬 Response:**\n{response}")
+            st.markdown("**💡 Follow-up Suggestions:**")
+            for f in followups:
+                st.button(f)
+
     except Exception as e:
-        st.error(f"❌ Unexpected error: {str(e)}")
-else:
-    st.info("Please upload a CSV file to begin.")
+        st.error(f"❌ Error: {str(e)}")
