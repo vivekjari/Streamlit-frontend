@@ -1,6 +1,5 @@
 streamlit
-openai
 pandas
+openai
 python-dotenv
-langchain
-langchain-community
+langchain==0.0.330
