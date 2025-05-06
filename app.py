@@ -14,7 +14,7 @@ if uploaded_file:
     with st.spinner("Analyzing your campaign data..."):
         files = {'file': (uploaded_file.name, uploaded_file, 'text/csv')}
         try:
-            response = requests.post("https://your-backend-url.onrender.com/analyze", files=files)
+            response = requests.post("https://campaign-analysis-f8e1.onrender.com", files=files)
             if response.status_code == 200:
                 result = response.json()
                 st.subheader("📌 Key Insights")
