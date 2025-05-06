@@ -1,5 +1,0 @@
-streamlit
-pandas
-openai
-python-dotenv
-langchain==0.0.350
