@@ -15,6 +15,7 @@ if uploaded_file:
         files = {'file': (uploaded_file.name, uploaded_file, 'text/csv')}
         try:
             response = requests.post("https://campaign-analysis-f8e1.onrender.com/analyze", files=files)
+            st.info(f"Response code: {response.status_code}")
             if response.status_code == 200:
                 result = response.json()
                 st.subheader("📌 Key Insights")
@@ -28,6 +29,6 @@ if uploaded_file:
                 for q in result["suggested_paths"]:
                     st.markdown(f"- {q}")
             else:
-                st.error("Something went wrong. Please check your backend URL and try again.")
+                st.error(f"Error from backend: {response.text}")
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"Exception: {e}")
