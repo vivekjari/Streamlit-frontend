@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# Page settings
+# Page setup
 st.set_page_config(page_title="Campaign Analyzer AI", layout="wide")
 st.title("📊 AI-Powered Campaign Analyzer")
 
@@ -24,7 +24,6 @@ uploaded_file = st.file_uploader("Upload your campaign CSV file", type=["csv"])
 # Analyze button
 if uploaded_file and st.button("🔍 Analyze"):
     with st.spinner("Analyzing your campaign data..."):
-        files = {"file": uploaded_file.getvalue()}
         response = requests.post(BACKEND_ANALYZE_URL, files={"file": uploaded_file})
 
         if response.status_code == 200:
@@ -32,7 +31,6 @@ if uploaded_file and st.button("🔍 Analyze"):
             st.session_state.file_uploaded = True
             st.session_state.suggested_paths = data['suggested_paths']
 
-            # Format results
             insights = "\n".join(f"- {insight}" for insight in data["pro_insights"])
             full_message = f"### 🧠 Insights\n\n{insights}\n\n### 🤖 AI Suggestions\n\n{data['llm_suggestions']}"
             st.session_state.latest_result = full_message
@@ -40,7 +38,7 @@ if uploaded_file and st.button("🔍 Analyze"):
             st.error(f"Error from backend: {response.text}")
             st.session_state.file_uploaded = False
 
-# Only show interaction options if analyzed
+# Show follow-up options
 if st.session_state.file_uploaded:
     st.subheader("💡 Suggested Follow-up Questions")
     for q in st.session_state.suggested_paths:
@@ -64,16 +62,25 @@ if st.session_state.file_uploaded:
             else:
                 st.error("Failed to get response from backend.")
 
-# Spacer to push result box to bottom
-st.markdown("<br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
-
-# Result section styled as a box
+# Result section at the bottom of the page
+st.markdown("---")
+st.subheader("📥 Result")
 if st.session_state.latest_result:
-    st.markdown("""
-        <div style="position: fixed; bottom: 0; left: 0; right: 0; background-color: #f9f9f9;
-                    border-top: 2px solid #ccc; padding: 20px; max-height: 300px; overflow-y: auto;
-                    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;">
-            <h4 style="margin-top: 0;">📥 Result</h4>
-            <div style="white-space: pre-wrap;">{}</div>
+    st.markdown(
+        f"""
+        <div style="
+            background-color: #f0f2f6;
+            border: 1px solid #d0d0d0;
+            padding: 20px;
+            border-radius: 8px;
+            color: black;
+            font-size: 16px;
+            white-space: pre-wrap;
+            ">
+            {st.session_state.latest_result.replace('\n', '<br>')}
         </div>
-    """.format(st.session_state.latest_result.replace("\n", "<br>")), unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.info("Results will appear here after analysis or asking a question.")
