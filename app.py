@@ -11,12 +11,12 @@ BACKEND_ANALYZE_URL = "https://campaign-analysis-f8e1.onrender.com/analyze"
 BACKEND_ASK_URL = "https://campaign-analysis-f8e1.onrender.com/ask"
 
 # Session state setup
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
 if "suggested_paths" not in st.session_state:
     st.session_state.suggested_paths = []
 if "file_uploaded" not in st.session_state:
     st.session_state.file_uploaded = False
+if "latest_result" not in st.session_state:
+    st.session_state.latest_result = ""
 
 # File upload
 uploaded_file = st.file_uploader("Upload your campaign CSV file", type=["csv"])
@@ -29,56 +29,45 @@ if uploaded_file and st.button("🔍 Analyze"):
 
         if response.status_code == 200:
             data = response.json()
-            st.session_state.chat_history = [
-                {"role": "system", "content": "Initial analysis complete."},
-                {"role": "ai", "content": data['llm_suggestions']}
-            ]
-            st.session_state.suggested_paths = data['suggested_paths']
             st.session_state.file_uploaded = True
+            st.session_state.suggested_paths = data['suggested_paths']
 
-            st.subheader("🧠 Insights")
-            for insight in data["pro_insights"]:
-                st.markdown(f"- {insight}")
+            # Prepare insights and suggestions
+            insights = "\n".join(f"- {insight}" for insight in data["pro_insights"])
+            full_message = f"### 🧠 Insights\n\n{insights}\n\n### 🤖 AI Suggestions\n\n{data['llm_suggestions']}"
+            st.session_state.latest_result = full_message
+
         else:
             st.error(f"Error from backend: {response.text}")
             st.session_state.file_uploaded = False
 
-# Only show chat if file was uploaded and analyzed
+# Only show results after file is uploaded and analyzed
 if st.session_state.file_uploaded:
+    # Results section
+    st.subheader("📥 Results")
+    st.markdown(st.session_state.latest_result, unsafe_allow_html=True)
+
     # Suggested follow-ups
     if st.session_state.suggested_paths:
         st.subheader("💡 Suggested Follow-up Questions")
         for q in st.session_state.suggested_paths:
             if st.button(q):
-                st.session_state.chat_history.append({"role": "user", "content": q})
                 with st.spinner("Thinking..."):
                     response = requests.post(BACKEND_ASK_URL, json={"question": q})
                     if response.status_code == 200:
                         answer = response.json()["response"]
-                        st.session_state.chat_history.append({"role": "ai", "content": answer})
-                        st.markdown(f"**{q}**")
-                        st.markdown(answer)
+                        st.session_state.latest_result = f"**{q}**\n\n{answer}"
                     else:
                         st.error("Failed to get response from backend.")
 
     # Freeform chat
-    st.subheader("💬 Chat with your Data")
-    user_input = st.text_input("Ask anything about your campaign data:")
+    st.subheader("💬 Ask anything about your campaign data")
+    user_input = st.text_input("Your question:")
     if st.button("Send") and user_input.strip():
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
         with st.spinner("Thinking..."):
             response = requests.post(BACKEND_ASK_URL, json={"question": user_input})
             if response.status_code == 200:
                 answer = response.json()["response"]
-                st.session_state.chat_history.append({"role": "ai", "content": answer})
-                st.markdown(f"**You:** {user_input}")
-                st.markdown(answer)
+                st.session_state.latest_result = f"**You asked:** {user_input}\n\n{answer}"
             else:
                 st.error("Failed to get response from backend.")
-
-# Show chat history
-if st.session_state.chat_history:
-    st.subheader("📜 Chat History")
-    for msg in st.session_state.chat_history:
-        role = "🧑‍💼 You" if msg["role"] == "user" else "🤖 AI"
-        st.markdown(f"**{role}:** {msg['content']}")
