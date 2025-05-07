@@ -32,35 +32,27 @@ if uploaded_file and st.button("🔍 Analyze"):
             st.session_state.file_uploaded = True
             st.session_state.suggested_paths = data['suggested_paths']
 
-            # Prepare insights and suggestions
+            # Format results
             insights = "\n".join(f"- {insight}" for insight in data["pro_insights"])
             full_message = f"### 🧠 Insights\n\n{insights}\n\n### 🤖 AI Suggestions\n\n{data['llm_suggestions']}"
             st.session_state.latest_result = full_message
-
         else:
             st.error(f"Error from backend: {response.text}")
             st.session_state.file_uploaded = False
 
-# Only show results after file is uploaded and analyzed
+# Only show interaction options if analyzed
 if st.session_state.file_uploaded:
-    # Results section
-    st.subheader("📥 Results")
-    st.markdown(st.session_state.latest_result, unsafe_allow_html=True)
+    st.subheader("💡 Suggested Follow-up Questions")
+    for q in st.session_state.suggested_paths:
+        if st.button(q):
+            with st.spinner("Thinking..."):
+                response = requests.post(BACKEND_ASK_URL, json={"question": q})
+                if response.status_code == 200:
+                    answer = response.json()["response"]
+                    st.session_state.latest_result = f"**{q}**\n\n{answer}"
+                else:
+                    st.error("Failed to get response from backend.")
 
-    # Suggested follow-ups
-    if st.session_state.suggested_paths:
-        st.subheader("💡 Suggested Follow-up Questions")
-        for q in st.session_state.suggested_paths:
-            if st.button(q):
-                with st.spinner("Thinking..."):
-                    response = requests.post(BACKEND_ASK_URL, json={"question": q})
-                    if response.status_code == 200:
-                        answer = response.json()["response"]
-                        st.session_state.latest_result = f"**{q}**\n\n{answer}"
-                    else:
-                        st.error("Failed to get response from backend.")
-
-    # Freeform chat
     st.subheader("💬 Ask anything about your campaign data")
     user_input = st.text_input("Your question:")
     if st.button("Send") and user_input.strip():
@@ -71,3 +63,17 @@ if st.session_state.file_uploaded:
                 st.session_state.latest_result = f"**You asked:** {user_input}\n\n{answer}"
             else:
                 st.error("Failed to get response from backend.")
+
+# Spacer to push result box to bottom
+st.markdown("<br><br><br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
+
+# Result section styled as a box
+if st.session_state.latest_result:
+    st.markdown("""
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; background-color: #f9f9f9;
+                    border-top: 2px solid #ccc; padding: 20px; max-height: 300px; overflow-y: auto;
+                    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;">
+            <h4 style="margin-top: 0;">📥 Result</h4>
+            <div style="white-space: pre-wrap;">{}</div>
+        </div>
+    """.format(st.session_state.latest_result.replace("\n", "<br>")), unsafe_allow_html=True)
