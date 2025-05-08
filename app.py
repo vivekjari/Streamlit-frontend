@@ -2,19 +2,20 @@ import streamlit as st
 import requests
 
 # Page config
-st.set_page_config(page_title="Dr. Data", layout="wide")
+st.set_page_config(page_title="Dr. Data - AI powered campaign diagnosis", layout="wide")
 
 # Custom header with profile picture and title
 st.markdown(
     """
-    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
         <img src="https://raw.githubusercontent.com/vivekjari/Streamlit-frontend/main/vivek_profile_picture.png"
-             style="border-radius: 50%; width: 50px; height: 50px;" alt="Dr. Data">
-        <h1 style="margin: 0;">Dr. Data</h1>
+             style="border-radius: 50%; width: 100px; height: 100px;" alt="Dr. Data">
+        <h1 style="margin: 0; font-size: 40px;">Dr. Data</h1>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 # Backend URLs
 BACKEND_ANALYZE_URL = "https://campaign-analysis-f8e1.onrender.com/analyze"
