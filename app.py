@@ -11,8 +11,8 @@ st.markdown(
         <img src="https://raw.githubusercontent.com/vivekjari/Streamlit-frontend/main/vivek_profile_picture.png"
              style="border-radius: 50%; width: 100px; height: 100px;" alt="Dr. Data">
         <div>
-            <h1 style="margin: 0; font-size: 36px;">Dr. Data 🥼</h1>
-            <p style="margin: 0; font-size: 18px; color: #666;">AI-powered Campaign Diagnosis 📊</p>
+            <h1 style="margin: 0; font-size: 36px;">Dr. Data 👨🏻‍⚕️</h1>
+            <p style="margin: 0; font-size: 24px; color: #666;">AI-powered Campaign Diagnosis 📊</p>
         </div>
     </div>
     """,
