@@ -19,8 +19,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-
 # Backend URLs
 BACKEND_ANALYZE_URL = "https://campaign-analysis-f8e1.onrender.com/analyze"
 BACKEND_ASK_URL = "https://campaign-analysis-f8e1.onrender.com/ask"
@@ -51,21 +49,6 @@ if uploaded_file and st.button("🔍 Analyze"):
             st.error(f"Backend Error: {response.text}")
             st.session_state.file_uploaded = False
 
-# Follow-up suggestions
-if st.session_state.file_uploaded and st.session_state.suggested_paths:
-    st.subheader("💡 Suggested Follow-up Questions")
-    cols = st.columns(3)
-    for idx, q in enumerate(st.session_state.suggested_paths):
-        with cols[idx % 3]:
-            if st.button(q, key=f"suggest_{idx}"):
-                with st.spinner("Thinking..."):
-                    response = requests.post(BACKEND_ASK_URL, json={"question": q})
-                    if response.status_code == 200:
-                        answer = response.json()["response"]
-                        st.session_state.latest_result = f"**{q}**\n\n{answer}"
-                    else:
-                        st.session_state.latest_result = "❌ Failed to get response from backend."
-
 # Freeform question
 if st.session_state.file_uploaded:
     st.subheader("💬 Ask anything about your campaign data")
@@ -79,7 +62,7 @@ if st.session_state.file_uploaded:
             else:
                 st.session_state.latest_result = "❌ Failed to get response from backend."
 
-# Result box at bottom
+# Result box
 st.markdown("---")
 st.subheader("📥 Result")
 st.markdown(
@@ -93,10 +76,25 @@ st.markdown(
         font-size: 16px;
         white-space: pre-wrap;
         min-height: 150px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
     ">
         {st.session_state.latest_result.replace('\n', '<br>') if st.session_state.latest_result else 'Results will appear here after analysis or asking a question.'}
     </div>
     """,
     unsafe_allow_html=True
 )
+
+# Suggested follow-up questions (below result)
+if st.session_state.file_uploaded and st.session_state.suggested_paths:
+    st.subheader("💡 Suggested Follow-up Questions")
+    cols = st.columns(3)
+    for idx, q in enumerate(st.session_state.suggested_paths):
+        with cols[idx % 3]:
+            if st.button(q, key=f"suggest_{idx}"):
+                with st.spinner("Thinking..."):
+                    response = requests.post(BACKEND_ASK_URL, json={"question": q})
+                    if response.status_code == 200:
+                        answer = response.json()["response"]
+                        st.session_state.latest_result = f"**{q}**\n\n{answer}"
+                    else:
+                        st.session_state.latest_result = "❌ Failed to get response from backend."
