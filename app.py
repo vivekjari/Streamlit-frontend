@@ -10,11 +10,15 @@ st.markdown(
     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
         <img src="https://raw.githubusercontent.com/vivekjari/Streamlit-frontend/main/vivek_profile_picture.png"
              style="border-radius: 50%; width: 100px; height: 100px;" alt="Dr. Data">
-        <h1 style="margin: 0; font-size: 40px;">Dr. Data</h1>
+        <div>
+            <h1 style="margin: 0; font-size: 36px;">Dr. Data</h1>
+            <p style="margin: 0; font-size: 18px; color: #666;">AI-powered Campaign Diagnosis</p>
+        </div>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
 # Backend URLs
